@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Insult Bot</title>
+    <style>
+        :root {
+            --primary-red: rgb(128, 26, 48);
+            --dark-gray: rgb(38, 38, 38);
+            --burgundy: rgb(49, 18, 26);
+            --white: #ffffff;
+            --light-gray: #f5f5f5;
+            --border: #d0d0d0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: var(--white);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .chat-container {
+            background: var(--light-gray);
+            border: 3px solid var(--dark-gray);
+            width: 100%;
+            max-width: 800px;
+            height: 90vh;
+            max-height: 900px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chat-header {
+            background: var(--primary-red);
+            color: var(--white);
+            padding: 1.5rem 2rem;
+            border-bottom: 3px solid var(--dark-gray);
+            text-align: center;
+        }
+
+        .chat-header h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 0.5rem;
+        }
+
+        .chat-header p {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .chat-messages {
+            padding: 2rem;
+            flex: 1;
+            overflow-y: auto;
+            background: var(--white);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-messages::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .chat-messages::-webkit-scrollbar-track {
+            background: var(--white);
+            border: 1px solid var(--dark-gray);
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: var(--primary-red);
+            border: 1px solid var(--dark-gray);
+        }
+
+        .message {
+            margin-bottom: 1.5rem;
+            animation: fadeIn 0.5s;
+            display: flex;
+            width: 100%;
+        }
+
+        .message.user-msg {
+            justify-content: flex-end;
+        }
+
+        .message.bot-msg {
+            justify-content: flex-start;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .bot-message {
+            background: var(--light-gray);
+            border: 3px solid var(--dark-gray);
+            padding: 1rem 1.25rem;
+            display: inline-block;
+            max-width: 70%;
+            font-size: 1rem;
+            font-weight: 500;
+            line-height: 1.5;
+            border-radius: 0;
+        }
+
+        .user-message {
+            background: var(--primary-red);
+            border: 3px solid var(--dark-gray);
+            color: var(--white);
+            padding: 1rem 1.25rem;
+            display: inline-block;
+            max-width: 70%;
+            font-size: 1rem;
+            font-weight: 500;
+            line-height: 1.5;
+            border-radius: 0;
+        }
+
+        .typing {
+            background: var(--light-gray);
+            border: 3px solid var(--dark-gray);
+            padding: 1rem 1.25rem;
+            display: inline-block;
+        }
+
+        .typing span {
+            animation: blink 1.4s infinite;
+            font-size: 20px;
+        }
+
+        .typing span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes blink {
+            0%, 60%, 100% { opacity: 0.3; }
+            30% { opacity: 1; }
+        }
+
+        .input-area {
+            padding: 1.5rem;
+            border-top: 3px solid var(--dark-gray);
+            display: flex;
+            gap: 0.75rem;
+            background: var(--light-gray);
+        }
+
+        input {
+            flex: 1;
+            padding: 1rem 1.25rem;
+            border: 3px solid var(--dark-gray);
+            background: var(--white);
+            color: var(--dark-gray);
+            font-size: 1rem;
+            font-weight: 500;
+            outline: none;
+            transition: border-color 0.2s;
+            font-family: 'Inter', sans-serif;
+        }
+
+        input:focus {
+            border-color: var(--primary-red);
+        }
+
+        button {
+            background: var(--primary-red);
+            color: var(--white);
+            border: 3px solid var(--dark-gray);
+            padding: 1rem 2rem;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.15s;
+            font-family: 'Inter', sans-serif;
+        }
+
+        button:hover {
+            background: var(--burgundy);
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: scale(1);
+        }
+
+        .clear {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .chat-container {
+                max-width: 100%;
+                height: 100vh;
+                max-height: 100vh;
+            }
+
+            .chat-header h1 {
+                font-size: 1.2rem;
+            }
+
+            .chat-header p {
+                font-size: 0.8rem;
+            }
+
+            .bot-message,
+            .user-message {
+                max-width: 80%;
+                font-size: 0.9rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .chat-header h1 {
+                font-size: 0.9rem;
+                letter-spacing: 1.5px;
+            }
+
+            .chat-header p {
+                font-size: 0.7rem;
+            }
+
+            .chat-messages {
+                padding: 1rem;
+            }
+
+            .bot-message,
+            .user-message {
+                font-size: 0.75rem;
+                padding: 0.6rem 0.85rem;
+            }
+
+            input,
+            button {
+                font-size: 0.75rem;
+                padding: 0.6rem 0.85rem;
+            }
+
+            button {
+                padding: 0.6rem 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <h1>Insult Me!</h1>
+            <p>Powered by advanced AI technology</p>
+        </div>
+        <div class="chat-messages" id="chatMessages">
+            <div class="message bot-msg">
+                <div class="bot-message">👋 Welcome! I want to insult your dumbass.</div>
+            </div>
+            <div class="message bot-msg">
+                <div class="bot-message">To get started, please tell me your name and I'll insult you...</div>
+            </div>
+        </div>
+        <div class="input-area">
+            <input type="text" id="userInput" placeholder="Type your name here..." />
+            <button id="sendBtn">Send</button>
+        </div>
+    </div>
+
+    <script>
+        const insults = [
+            "you look like an alien today",
+            "your haircut is a crime against humanity",
+            "you have the fashion sense of a confused potato",
+            "your coding skills are as good as your looks... non-existent",
+            "even my grandma writes better code than you",
+            "you're the human equivalent of a software bug",
+            "your personality is like Microsoft Edge... outdated, ugly and nobody likes it",
+            "you look like a trump supporter. shame on you.",
+            "you seem like an person that would support elon musk.. eww",
+            "even joe biden is more awake then you are the entire day",
+            "i bet you get bullied for your looks, lol",
+            "my indian grandmother is more intelligent than you",
+            "you look like someone that still uses snapchat",
+            "i know your brain is made of wrong recycled ai-trash",
+            "eating paint chips would improve your IQ",
+            "i can see inside your brain, and it's empty",
+            "your jokes are as stale as your personality",
+            "you have the charisma of an ai-powered kebab",
+            "your social skills are as advanced as a toaster",
+            "you bring everyone so much joy... when you leave",
+            "you're as useless as the 'ueue' in 'queue'",
+            "if you were any more inbred, you would be born in bremerhaven",
+            "you look like a before picture in a hair loss commercial",
+            "your face makes onions cry",
+            "you're as beatiufl as jypark",
+            "even a broken clock is right twice a day, unlike you",
+            "you have the emotional range of a teaspoon",
+            "i hate you. like for real. you suck.",
+            "your mother is disappointed in you",
+            "your mother is a payed actor in this simulation",
+            "chinese intelligence agencies are laughing at you",
+            "your existence is a glitch in the matrix",
+            "even ai thinks you're a failure",
+            "you seem like the type of person who would bring a fork to a soup party",
+            "your personality is as bland as my insults",
+            "even obama wouldn't want to hang out with you",
+            "zuckerberg is more fun than you",
+            "your aura is as dark as your browser history",
+            "even hackers are scared of your search history",
+            "eating paint chips would improve your IQ",
+            "your brain is so small, it could be used as a microchip",
+            "I've seen better looking error messages",
+            "you're the reason aliens won't visit Earth"
+        ];
+
+        const chatMessages = document.getElementById('chatMessages');
+        const userInput = document.getElementById('userInput');
+        const sendBtn = document.getElementById('sendBtn');
+
+        function addMessage(text, isUser = false) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = isUser ? 'message user-msg' : 'message bot-msg';
+            const contentDiv = document.createElement('div');
+            contentDiv.className = isUser ? 'user-message' : 'bot-message';
+            contentDiv.textContent = text;
+            messageDiv.appendChild(contentDiv);
+            chatMessages.appendChild(messageDiv);
+            
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function showTyping() {
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'message bot-msg';
+            typingDiv.id = 'typing';
+            typingDiv.innerHTML = '<div class="typing"><span>.</span><span>.</span><span>.</span></div>';
+            chatMessages.appendChild(typingDiv);
+            
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function hideTyping() {
+            const typingDiv = document.getElementById('typing');
+            if (typingDiv) typingDiv.remove();
+        }
+
+        function handleSend() {
+            const name = userInput.value.trim();
+            if (!name) return;
+
+            addMessage(name, true);
+            userInput.value = '';
+            userInput.disabled = true;
+            sendBtn.disabled = true;
+
+            showTyping();
+
+            setTimeout(() => {
+                hideTyping();
+                const randomInsult = insults[Math.floor(Math.random() * insults.length)];
+                addMessage(`Hey ${name}! ${randomInsult}`);
+
+                setTimeout(() => {
+                    showTyping();
+                    setTimeout(() => {
+                        hideTyping();
+                        addMessage("Goodbye! 👋 *AI has left the chat*");
+                        userInput.disabled = true;
+                        sendBtn.disabled = true;
+                    }, 1500);
+                }, 1000);
+            }, 2000);
+        }
+
+        sendBtn.addEventListener('click', handleSend);
+        userInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') handleSend();
+        });
+    </script>
+</body>
+</html>
